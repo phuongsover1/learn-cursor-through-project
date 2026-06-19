@@ -1,0 +1,20 @@
+---
+description: Use shadcn/ui for project UI components
+alwaysApply: true
+---
+
+# shadcn/ui Usage
+
+- Use shadcn/ui for all UI elements in this project.
+- If shadcn/ui is not initialized, run:
+
+```bash
+pnpm dlx shadcn@latest init --template next
+```
+
+- If a needed component is not installed, add it with `pnpm dlx shadcn@latest add <component>`.
+- For example, to install the button component, run:
+
+```bash
+pnpm dlx shadcn@latest add button
+```
