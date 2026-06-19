@@ -6,6 +6,7 @@ import {
   SignUpButton,
   UserButton,
 } from "@clerk/nextjs";
+import { shadcn } from "@clerk/ui/themes";
 import { Poppins } from "next/font/google";
 import "./globals.css";
 
@@ -33,6 +34,7 @@ export default function RootLayout({
           afterSignOutUrl="/"
           signInUrl="/sign-in"
           signUpUrl="/sign-up"
+          appearance={{ theme: shadcn }}
         >
           <header className="flex items-center justify-end gap-4 border-b border-white/10 px-6 py-4">
             <Show when="signed-out">
