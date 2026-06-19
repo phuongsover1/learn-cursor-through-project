@@ -29,14 +29,18 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${poppins.variable} dark h-full antialiased`}>
       <body className="min-h-full flex flex-col">
-        <ClerkProvider>
+        <ClerkProvider
+          afterSignOutUrl="/"
+          signInUrl="/sign-in"
+          signUpUrl="/sign-up"
+        >
           <header className="flex items-center justify-end gap-4 border-b border-white/10 px-6 py-4">
             <Show when="signed-out">
-              <SignInButton />
-              <SignUpButton />
+              <SignInButton mode="modal" />
+              <SignUpButton mode="modal" />
             </Show>
             <Show when="signed-in">
-              <UserButton />
+              <UserButton userProfileMode="modal" />
             </Show>
           </header>
           {children}
