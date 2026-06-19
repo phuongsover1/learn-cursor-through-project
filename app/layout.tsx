@@ -6,6 +6,7 @@ const poppins = Poppins({
   variable: "--font-poppins",
   subsets: ["latin"],
   weight: ["400", "500", "600", "700"],
+  adjustFontFallback: false,
 });
 
 export const metadata: Metadata = {
@@ -19,13 +20,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html
-      lang="en"
-      className={`${poppins.variable} h-full font-sans antialiased`}
-    >
-      <body className={`${poppins.className} min-h-full flex flex-col font-sans`}>
-        {children}
-      </body>
+    <html lang="en" className={`${poppins.variable} h-full antialiased`}>
+      <body className="min-h-full flex flex-col">{children}</body>
     </html>
   );
 }

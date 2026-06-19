@@ -7,9 +7,12 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-poppins);
-  --font-mono: var(--font-poppins);
-  --font-heading: var(--font-poppins);
+  --font-sans: "Poppins";
+  --font-mono: "Poppins";
+  --font-serif: "Poppins";
+  --font-heading: "Poppins";
+  --default-font-family: "Poppins";
+  --default-mono-font-family: "Poppins";
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -49,6 +52,7 @@
 }
 
 :root {
+  --font-poppins: "Poppins";
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0 0);
   --card: oklch(1 0 0);
@@ -118,13 +122,28 @@
 }
 
 @layer base {
-  * {
+  *,
+  ::before,
+  ::after {
     @apply border-border outline-ring/50;
   }
   html {
-    @apply font-sans;
+    --font-poppins: "Poppins" !important;
+  }
+  html,
+  :host,
+  body,
+  code,
+  kbd,
+  samp,
+  pre,
+  button,
+  input,
+  textarea,
+  select {
+    font-family: "Poppins";
   }
   body {
-    @apply font-sans bg-background text-foreground;
+    @apply bg-background text-foreground;
   }
 }
