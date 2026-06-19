@@ -1,4 +1,11 @@
 import type { Metadata } from "next";
+import {
+  ClerkProvider,
+  Show,
+  SignInButton,
+  SignUpButton,
+  UserButton,
+} from "@clerk/nextjs";
 import { Poppins } from "next/font/google";
 import "./globals.css";
 
@@ -21,7 +28,20 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={`${poppins.variable} dark h-full antialiased`}>
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full flex flex-col">
+        <ClerkProvider>
+          <header className="flex items-center justify-end gap-4 border-b border-white/10 px-6 py-4">
+            <Show when="signed-out">
+              <SignInButton />
+              <SignUpButton />
+            </Show>
+            <Show when="signed-in">
+              <UserButton />
+            </Show>
+          </header>
+          {children}
+        </ClerkProvider>
+      </body>
     </html>
   );
 }
