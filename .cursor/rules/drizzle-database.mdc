@@ -1,0 +1,46 @@
+---
+description: Database access must use Drizzle schema and query builder
+alwaysApply: true
+---
+
+# Drizzle Database
+
+All database interactions must go through Drizzle ORM using this project's schema and query APIs.
+
+## Key files
+
+- Client: [src/db/index.ts](mdc:src/db/index.ts) — import `db` from here
+- Schema: [src/db/schema.ts](mdc:src/db/schema.ts) — table and relation definitions
+- Migrations: [drizzle.config.ts](mdc:drizzle.config.ts) and `drizzle/` output
+
+## Required patterns
+
+- Import the shared client: `import { db } from "@/src/db"`
+- Import tables from schema: `import { decksTable, cardsTable } from "@/src/db/schema"`
+- Use Drizzle query builders (`select`, `insert`, `update`, `delete`) and operators from `drizzle-orm` (`eq`, `and`, `or`, etc.)
+
+```typescript
+import { eq } from "drizzle-orm";
+import { db } from "@/src/db";
+import { cardsTable, decksTable } from "@/src/db/schema";
+
+const decks = await db.select().from(decksTable).where(eq(decksTable.userId, userId));
+
+const [deck] = await db
+  .insert(decksTable)
+  .values({ userId, name: "Japanese" })
+  .returning();
+```
+
+## Schema changes
+
+- Add or modify tables only in [src/db/schema.ts](mdc:src/db/schema.ts)
+- Generate migrations with `pnpm drizzle-kit generate`
+- Apply migrations with `pnpm drizzle-kit migrate`
+
+## Do not
+
+- Use raw SQL (`sql` tagged templates, `db.execute`, direct `neon()` calls) outside [src/db/index.ts](mdc:src/db/index.ts)
+- Introduce other ORMs (Prisma, Kysely, TypeORM, etc.)
+- Create additional database clients or connection pools elsewhere
+- Query tables not defined in the Drizzle schema
