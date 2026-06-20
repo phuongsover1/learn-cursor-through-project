@@ -1,0 +1,99 @@
+---
+description: Server Components for reads, Server Actions for writes, Zod for validation
+alwaysApply: true
+---
+
+# Server Data Patterns
+
+All database reads and writes follow a strict server-first architecture. Pair with [clerk-auth.mdc](mdc:.cursor/rules/clerk-auth.mdc) for auth and [drizzle-database.mdc](mdc:.cursor/rules/drizzle-database.mdc) for queries.
+
+## Data retrieval — Server Components only
+
+Fetch data in async Server Components (`app/**/page.tsx`, layouts, or server-only modules they import). Query Drizzle directly on the server.
+
+```typescript
+// app/decks/page.tsx
+import { auth } from "@clerk/nextjs/server";
+import { eq } from "drizzle-orm";
+import { db } from "@/src/db";
+import { decksTable } from "@/src/db/schema";
+
+export default async function DecksPage() {
+  const { userId } = await auth();
+  if (!userId) throw new Error("Unauthorized");
+
+  const decks = await db
+    .select()
+    .from(decksTable)
+    .where(eq(decksTable.userId, userId));
+
+  return <DeckList decks={decks} />;
+}
+```
+
+Pass fetched data to Client Components as props. Client Components must not fetch or mutate database data.
+
+## Mutations — Server Actions only
+
+All `insert`, `update`, and `delete` operations go through Server Actions in files marked with `"use server"`. Co-locate actions under `app/**/actions.ts` or `src/actions/`.
+
+```typescript
+"use server";
+
+import { auth } from "@clerk/nextjs/server";
+import { db } from "@/src/db";
+import { decksTable } from "@/src/db/schema";
+import { createDeckSchema, type CreateDeckInput } from "@/src/validations/decks";
+
+export async function createDeck(input: CreateDeckInput) {
+  const parsed = createDeckSchema.parse(input);
+
+  const { userId } = await auth();
+  if (!userId) throw new Error("Unauthorized");
+
+  const [deck] = await db
+    .insert(decksTable)
+    .values({ userId, name: parsed.name })
+    .returning();
+
+  return deck;
+}
+```
+
+## Validation — Zod required
+
+Define Zod schemas in `src/validations/` (or next to the action). Export both the schema and an inferred TypeScript type.
+
+```typescript
+import { z } from "zod";
+
+export const createDeckSchema = z.object({
+  name: z.string().trim().min(1).max(100),
+});
+
+export type CreateDeckInput = z.infer<typeof createDeckSchema>;
+```
+
+Every Server Action must:
+
+1. Accept a typed object parameter (`CreateDeckInput`, not `FormData`)
+2. Validate with `schema.parse(input)` or `schema.safeParse(input)` before any database work
+3. Return typed results or structured errors — never trust unvalidated client input
+
+```typescript
+// Client Component
+import { createDeck, type CreateDeckInput } from "@/app/decks/actions";
+
+async function onSubmit() {
+  const input: CreateDeckInput = { name: deckName };
+  await createDeck(input);
+}
+```
+
+## Do not
+
+- Fetch database data in Client Components (`useEffect` + `fetch`, React Query against internal APIs, etc.)
+- Perform inserts, updates, or deletes outside Server Actions (Route Handlers, API routes, client-side Drizzle)
+- Use `FormData` as a Server Action parameter type — parse form fields into a typed object, then validate with Zod
+- Skip Zod validation or accept `unknown` / `any` action inputs
+- Use Route Handlers for CRUD that belongs in Server Actions
