@@ -8,6 +8,7 @@ import {
 } from "@clerk/nextjs";
 import { shadcn } from "@clerk/ui/themes";
 import { Poppins } from "next/font/google";
+import { Button } from "@/components/ui/button";
 import "./globals.css";
 
 const poppins = Poppins({
@@ -38,8 +39,12 @@ export default function RootLayout({
         >
           <header className="flex items-center justify-end gap-4 border-b border-white/10 px-6 py-4">
             <Show when="signed-out">
-              <SignInButton mode="modal" />
-              <SignUpButton mode="modal" />
+              <SignInButton mode="modal">
+                <Button variant="outline">Sign In</Button>
+              </SignInButton>
+              <SignUpButton mode="modal">
+                <Button>Sign Up</Button>
+              </SignUpButton>
             </Show>
             <Show when="signed-in">
               <UserButton userProfileMode="modal" />
