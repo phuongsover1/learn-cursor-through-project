@@ -1,0 +1,53 @@
+---
+description: Clerk authentication and user data isolation
+alwaysApply: true
+---
+
+# Clerk Authentication
+
+All authentication is handled by [Clerk](https://clerk.com). Do not add other auth providers or custom session/token logic.
+
+## Key files
+
+- Middleware: [proxy.ts](mdc:proxy.ts) — `clerkMiddleware()` protects routes
+- Provider: [app/layout.tsx](mdc:app/layout.tsx) — `ClerkProvider`, sign-in/up UI
+- Sign-in/up pages: [app/sign-in/[[...sign-in]]/page.tsx](mdc:app/sign-in/[[...sign-in]]/page.tsx), [app/sign-up/[[...sign-up]]/page.tsx](mdc:app/sign-up/[[...sign-up]]/page.tsx)
+
+## Server-side identity
+
+Get the authenticated user only on the server. Never trust client-supplied user IDs.
+
+```typescript
+import { auth, currentUser } from "@clerk/nextjs/server";
+
+// Prefer auth() for userId checks in actions, routes, and data access
+const { userId } = await auth();
+if (!userId) throw new Error("Unauthorized");
+
+// Use currentUser() when you need profile fields (name, email, etc.)
+const user = await currentUser();
+if (!user) redirect("/sign-in");
+```
+
+- Use `auth()` in Server Actions, Route Handlers, and any code that reads or writes user data
+- Use `currentUser()` in Server Components when rendering user-specific UI
+- Client components: use Clerk hooks (`useAuth`, `useUser`) for UI state only — never for authorization decisions
+
+## User data isolation
+
+Users must only access their own data. Every read, create, update, and delete must be scoped to the authenticated Clerk `userId`.
+
+- Derive `userId` from `auth()` or `currentUser().id`, never from request body, query params, headers, or client props
+- On insert, set `userId` from the authenticated user — never from client input
+- On read/update/delete, filter by `userId` so another user's records cannot be returned or modified
+- For nested resources (e.g. cards under decks), verify ownership through the parent resource's `userId` before access
+
+See [drizzle-database.mdc](mdc:.cursor/rules/drizzle-database.mdc) for database query examples.
+
+## Do not
+
+- Accept or trust a client-supplied `userId` for authorization
+- Query user-owned data without filtering on the authenticated `userId`
+- Skip auth checks in Server Actions or Route Handlers because the page "looks" signed-in
+- Add alternate auth systems (NextAuth, custom JWT, session cookies)
+- Expose one user's decks, cards, or profile data to another user
