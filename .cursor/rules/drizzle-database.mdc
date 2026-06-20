@@ -32,6 +32,38 @@ const [deck] = await db
   .returning();
 ```
 
+## User data isolation
+
+Every query must scope data to the authenticated user. Never return or mutate another user's decks or cards.
+
+- Get `userId` from Clerk auth (`currentUser()` / `auth()`), never from client input (request body, query params, headers)
+- Set `decksTable.userId` on insert from the authenticated user's ID
+- Always filter deck reads, updates, and deletes with `eq(decksTable.userId, userId)`
+- Cards belong to decks via `deckId`; verify ownership through the parent deck's `userId` before reading or mutating cards
+
+```typescript
+import { and, eq } from "drizzle-orm";
+import { auth } from "@clerk/nextjs/server";
+import { db } from "@/src/db";
+import { cardsTable, decksTable } from "@/src/db/schema";
+
+const { userId } = await auth();
+if (!userId) throw new Error("Unauthorized");
+
+// Decks: always filter by userId
+const decks = await db
+  .select()
+  .from(decksTable)
+  .where(eq(decksTable.userId, userId));
+
+// Cards: join through decksTable to enforce ownership
+const cards = await db
+  .select({ id: cardsTable.id, front: cardsTable.front, back: cardsTable.back })
+  .from(cardsTable)
+  .innerJoin(decksTable, eq(cardsTable.deckId, decksTable.id))
+  .where(and(eq(decksTable.id, deckId), eq(decksTable.userId, userId)));
+```
+
 ## Schema changes
 
 - Add or modify tables only in [src/db/schema.ts](mdc:src/db/schema.ts)
@@ -44,3 +76,6 @@ const [deck] = await db
 - Introduce other ORMs (Prisma, Kysely, TypeORM, etc.)
 - Create additional database clients or connection pools elsewhere
 - Query tables not defined in the Drizzle schema
+- Query `decksTable` without filtering on `userId`
+- Access or modify cards without verifying the parent deck belongs to the current user
+- Trust a client-supplied `userId` instead of the authenticated Clerk user ID
