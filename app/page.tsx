@@ -1,5 +1,5 @@
 import { currentUser } from "@clerk/nextjs/server";
-import { DashboardPage } from "@/components/dashboard-page";
+import { redirect } from "next/navigation";
 import { LandingPage } from "@/components/landing-page";
 
 export default async function Home() {
@@ -9,5 +9,5 @@ export default async function Home() {
     return <LandingPage />;
   }
 
-  return <DashboardPage firstName={user.firstName ?? "there"} />;
+  redirect("/dashboard");
 }

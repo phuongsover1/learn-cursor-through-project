@@ -51,12 +51,12 @@ export function LandingPage() {
 
       <div className="flex gap-3">
         <Show when="signed-out">
-          <SignUpButton mode="modal">
+          <SignUpButton mode="modal" forceRedirectUrl="/dashboard">
             <Button size="lg" className="rounded-full px-8">
               Get Started Free
             </Button>
           </SignUpButton>
-          <SignInButton mode="modal">
+          <SignInButton mode="modal" forceRedirectUrl="/dashboard">
             <Button
               size="lg"
               variant="outline"

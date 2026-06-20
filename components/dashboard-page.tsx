@@ -4,33 +4,6 @@ import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
 import { BookOpen, Brain, Flame, Plus, Star, Zap } from "lucide-react";
 
-const STATS = [
-  {
-    label: "Decks",
-    value: "0",
-    icon: BookOpen,
-    description: "card decks created",
-  },
-  {
-    label: "Cards",
-    value: "0",
-    icon: Brain,
-    description: "total flashcards",
-  },
-  {
-    label: "Streak",
-    value: "0",
-    icon: Flame,
-    description: "days in a row",
-  },
-  {
-    label: "Mastered",
-    value: "0%",
-    icon: Star,
-    description: "cards mastered",
-  },
-];
-
 const QUICK_ACTIONS = [
   {
     label: "Create Deck",
@@ -57,9 +30,49 @@ const QUICK_ACTIONS = [
 
 interface DashboardPageProps {
   firstName: string;
+  deckCount: number;
+  cardCount: number;
+  decks: {
+    id: number;
+    name: string;
+    cardCount: number;
+    updatedAt: Date;
+  }[];
 }
 
-export function DashboardPage({ firstName }: DashboardPageProps) {
+export function DashboardPage({
+  firstName,
+  deckCount,
+  cardCount,
+  decks,
+}: DashboardPageProps) {
+  const stats = [
+    {
+      label: "Decks",
+      value: deckCount.toString(),
+      icon: BookOpen,
+      description: "card decks created",
+    },
+    {
+      label: "Cards",
+      value: cardCount.toString(),
+      icon: Brain,
+      description: "total flashcards",
+    },
+    {
+      label: "Streak",
+      value: "0",
+      icon: Flame,
+      description: "days in a row",
+    },
+    {
+      label: "Mastered",
+      value: "0%",
+      icon: Star,
+      description: "cards mastered",
+    },
+  ];
+
   return (
     <div className="flex flex-1 flex-col gap-8 px-6 py-10 max-w-5xl mx-auto w-full">
       {/* Welcome */}
@@ -85,7 +98,7 @@ export function DashboardPage({ firstName }: DashboardPageProps) {
 
       {/* Stats */}
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-        {STATS.map(({ label, value, icon: Icon, description }) => (
+        {stats.map(({ label, value, icon: Icon, description }) => (
           <Card key={label} className="bg-white/5 border-white/10 text-white">
             <CardHeader className="pb-2 flex flex-row items-center justify-between space-y-0">
               <CardTitle className="text-sm font-medium text-zinc-400">
@@ -145,6 +158,44 @@ export function DashboardPage({ firstName }: DashboardPageProps) {
             </a>
           ))}
         </div>
+      </div>
+
+      {/* Recent decks */}
+      <div>
+        <h2 className="text-sm font-semibold text-zinc-400 uppercase tracking-wider mb-4">
+          Recent decks
+        </h2>
+        {decks.length > 0 ? (
+          <div className="grid gap-4 sm:grid-cols-2">
+            {decks.map((deck) => (
+              <Card
+                key={deck.id}
+                className="bg-white/5 border-white/10 text-white"
+              >
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-base">{deck.name}</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-sm text-zinc-400">
+                    {deck.cardCount} {deck.cardCount === 1 ? "card" : "cards"}
+                  </p>
+                  <p className="text-xs text-zinc-500 mt-1">
+                    Updated {deck.updatedAt.toLocaleDateString()}
+                  </p>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        ) : (
+          <Card className="bg-white/5 border-white/10 text-white">
+            <CardContent className="py-6">
+              <p className="font-medium">No decks yet</p>
+              <p className="text-sm text-zinc-400 mt-1">
+                Create your first deck to start tracking cards here.
+              </p>
+            </CardContent>
+          </Card>
+        )}
       </div>
     </div>
   );
